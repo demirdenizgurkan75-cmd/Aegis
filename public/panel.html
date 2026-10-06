@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aegis Panel</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --bg2: #161b22;
+    --card: #1c2333;
+    --border: #2b3448;
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --blue: #4466ff;
+    --green: #55ff9f;
+    --red: #ff5555;
+    --orange: #ffaa00;
+    --yellow: #ffd166;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: radial-gradient(1200px 600px at 20% -10%, #1a2440 0%, var(--bg) 55%);
+    color: var(--text);
+    min-height: 100vh;
+  }
+  .header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 24px;
+    background: rgba(13,17,23,.8);
+    border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; backdrop-filter: blur(6px); z-index: 20;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px; }
+  .brand .logo { width: 32px; height: 32px; border-radius: 8px; display: grid; place-items: center; background: linear-gradient(135deg, var(--blue), #7a55ff); font-size: 16px; }
+  .userbox { display: flex; align-items: center; gap: 10px; }
+  .userbox img { width: 32px; height: 32px; border-radius: 50%; }
+  .userbox .uname { color: var(--muted); font-size: 14px; }
+  .btn {
+    border: 1px solid var(--border); background: var(--card); color: var(--text);
+    padding: 8px 14px; border-radius: 8px; cursor: pointer; font-size: 14px; transition: .15s;
+  }
+  .btn:hover { border-color: var(--blue); }
+  .btn.primary { background: var(--blue); border-color: var(--blue); font-weight: 600; }
+  .btn.primary:hover { filter: brightness(1.12); }
+  .btn.danger { color: var(--red); border-color: #5a1f2b; }
+  .btn.small { padding: 4px 10px; font-size: 13px; }
+
+  .container { max-width: 1080px; margin: 0 auto; padding: 24px; }
+
+  /* Giriş ekranı */
+  .login-wrap {
+    max-width: 420px; margin: 12vh auto; text-align: center;
+    background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 40px 32px;
+  }
+  .login-wrap h1 { font-size: 26px; margin-bottom: 6px; }
+  .login-wrap p { color: var(--muted); margin-bottom: 24px; font-size: 14px; }
+  .login-wrap .logo { width: 64px; height: 64px; border-radius: 16px; margin: 0 auto 16px; display: grid; place-items: center; font-size: 30px; background: linear-gradient(135deg, var(--blue), #7a55ff); }
+
+  /* Seçici + sekmeler */
+  .toolbar { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 18px; }
+  .toolbar select, .toolbar input {
+    background: var(--card); color: var(--text); border: 1px solid var(--border);
+    padding: 9px 12px; border-radius: 8px; font-size: 14px; max-width: 320px; flex: 1; min-width: 200px;
+  }
+  .tabs { display: flex; gap: 6px; margin-bottom: 18px; border-bottom: 1px solid var(--border); }
+  .tab {
+    padding: 10px 16px; cursor: pointer; color: var(--muted); border-bottom: 2px solid transparent;
+    font-size: 14px; font-weight: 500; user-select: none;
+  }
+  .tab.active { color: var(--text); border-bottom-color: var(--blue); }
+
+  /* Kartlar / grid */
+  .grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 18px; }
+  .stat-card .label { color: var(--muted); font-size: 13px; text-transform: uppercase; letter-spacing: .5px; }
+  .stat-card .value { font-size: 30px; font-weight: 700; margin-top: 4px; }
+  .stat-card .sub { color: var(--muted); font-size: 12px; margin-top: 2px; }
+  .card h3 { font-size: 15px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+
+  .chart { display: flex; align-items: flex-end; gap: 3px; height: 140px; padding-top: 8px; }
+  .bar { flex: 1; background: linear-gradient(180deg, #6a8bff, var(--blue)); border-radius: 3px 3px 0 0; min-width: 3px; position: relative; }
+  .bar .tl { position: absolute; bottom: calc(100% + 4px); left: 50%; transform: translateX(-50%); font-size: 10px; color: var(--muted); white-space: nowrap; }
+  .xlabels { display: flex; gap: 3px; margin-top: 6px; }
+  .xlabels span { flex: 1; text-align: center; font-size: 10px; color: var(--muted); overflow: hidden; }
+
+  .hbar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .hbar-row .name { width: 180px; font-size: 13px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .hbar-track { flex: 1; background: var(--bg2); border-radius: 6px; height: 16px; overflow: hidden; }
+  .hbar-fill { height: 100%; border-radius: 6px; background: var(--blue); }
+  .hbar-row .num { width: 42px; text-align: right; font-size: 13px; font-weight: 600; }
+
+  /* Ayarlar */
+  .settings-section { margin-bottom: 20px; }
+  .setting-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border); }
+  .setting-row:last-child { border-bottom: none; }
+  .setting-row .info { flex: 1; }
+  .setting-row .info .name { font-size: 14px; font-weight: 600; }
+  .setting-row .info .desc { color: var(--muted); font-size: 12px; margin-top: 2px; }
+  .switch { position: relative; width: 46px; height: 26px; flex-shrink: 0; }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .slider {
+    position: absolute; inset: 0; background: var(--bg2); border-radius: 26px; cursor: pointer; transition: .2s; border: 1px solid var(--border);
+  }
+  .slider::before { content: ""; position: absolute; width: 18px; height: 18px; left: 3px; top: 3px; background: var(--muted); border-radius: 50%; transition: .2s; }
+  .switch input:checked + .slider { background: var(--blue); border-color: var(--blue); }
+  .switch input:checked + .slider::before { transform: translateX(20px); background: #fff; }
+
+  textarea, input[type="text"] {
+    width: 100%; background: var(--bg2); border: 1px solid var(--border); color: var(--text);
+    border-radius: 8px; padding: 10px 12px; font-size: 13px; font-family: inherit; resize: vertical;
+  }
+  textarea:focus, input:focus, select:focus { outline: none; border-color: var(--blue); }
+  label.field { display: block; font-size: 13px; color: var(--muted); margin: 12px 0 6px; }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .chip { background: var(--bg2); border: 1px solid var(--border); border-radius: 20px; padding: 4px 10px; font-size: 12px; color: var(--muted); }
+
+  .raid-grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+  .raid-box { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 12px; }
+  .raid-box .cat { font-size: 13px; font-weight: 600; margin-bottom: 8px; }
+  .raid-box label { display: block; font-size: 11px; color: var(--muted); margin-top: 6px; }
+  .raid-box input { width: 100%; }
+
+  /* Tehdit ağı */
+  .sev-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .sev-row .name { width: 110px; font-size: 13px; }
+  .sev-row .track { flex: 1; background: var(--bg2); border-radius: 6px; height: 16px; overflow: hidden; }
+  .sev-row .num { width: 36px; text-align: right; font-size: 13px; font-weight: 600; }
+  .table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .table th, .table td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border); }
+  .table th { color: var(--muted); font-weight: 500; font-size: 12px; text-transform: uppercase; letter-spacing: .4px; }
+  .badge { padding: 2px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+  .badge.yuksek { background: #5a1f2b; color: #ff7b7b; }
+  .badge.orta { background: #4a3310; color: #ffc266; }
+  .badge.dusuk { background: #21362b; color: #8affc1; }
+  .empty { color: var(--muted); text-align: center; padding: 30px; font-size: 14px; }
+  .muted { color: var(--muted); font-size: 12px; }
+  .denied { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 40px; text-align: center; color: var(--muted); }
+  .denied .big { font-size: 40px; margin-bottom: 10px; }
+
+  .hidden { display: none !important; }
+
+  /* Toast */
+  .toasts { position: fixed; bottom: 20px; right: 20px; z-index: 100; display: flex; flex-direction: column; gap: 8px; }
+  .toast { background: var(--card); border: 1px solid var(--border); border-left: 4px solid var(--blue); color: var(--text); padding: 12px 16px; border-radius: 10px; font-size: 14px; box-shadow: 0 8px 24px rgba(0,0,0,.4); animation: slidein .2s ease; }
+  .toast.ok { border-left-color: var(--green); }
+  .toast.err { border-left-color: var(--red); }
+  @keyframes slidein { from { transform: translateX(20px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+  .loading { text-align: center; color: var(--muted); padding: 40px; }
+  .spinner { display: inline-block; width: 22px; height: 22px; border: 3px solid var(--border); border-top-color: var(--blue); border-radius: 50%; animation: spin .8s linear infinite; vertical-align: middle; margin-right: 8px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @media (max-width: 640px) { .container { padding: 14px; } .hbar-row .name { width: 110px; } }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="brand"><div class="logo">🛡️</div> Aegis Panel</div>
+  <div class="userbox hidden" id="userbox">
+    <span class="uname" id="uname"></span>
+    <img id="uavatar" alt="">
+    <button class="btn small" id="logoutBtn">Çıkış</button>
+  </div>
+</header>
+
+<!-- GİRİŞ -->
+<div class="login-wrap" id="loginView">
+  <div class="logo">🛡️</div>
+  <h1>Aegis Panel</h1>
+  <p>Sunucu yönetimi, istatistikler ve global tehdit ağı görünümü.</p>
+  <button class="btn primary" id="loginBtn" style="padding:12px 28px;font-size:15px;">Discord ile Giriş</button>
+  <p class="muted" id="loginError" style="margin-top:14px;"></p>
+</div>
+
+<!-- UYGULAMA -->
+<div class="container hidden" id="appView">
+  <div class="toolbar">
+    <select id="guildSelect"><option value="">Sunucu seçin…</option></select>
+    <button class="btn" id="refreshBtn">🔄 Yenile</button>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" data-tab="overview">📊 Genel Bakış</div>
+    <div class="tab" data-tab="settings">⚙️ Ayarlar</div>
+    <div class="tab" data-tab="economy">💰 Ekonomi</div>
+    <div class="tab" data-tab="threats">🌐 Tehdit Ağı</div>
+  </div>
+
+  <div id="pane-overview" class="pane"></div>
+  <div id="pane-settings" class="pane hidden"></div>
+  <div id="pane-economy" class="pane hidden"></div>
+  <div id="pane-threats" class="pane hidden"></div>
+</div>
+
+<div class="toasts" id="toasts"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  // ─── Oturum yönetimi ────────────────────────────────────────────────────────
+  const TOKEN_KEY = 'aegis_session';
+  const GUILD_KEY = 'aegis_last_guild';
+  let token = localStorage.getItem(TOKEN_KEY) || null;
+  let currentGuildId = localStorage.getItem(GUILD_KEY) || null;
+  let currentData = null;
+
+  // URL'den ?session= al → kaydet → adresten temizle
+  const params = new URLSearchParams(location.search);
+  const urlSession = params.get('session');
+  if (urlSession) {
+    localStorage.setItem(TOKEN_KEY, urlSession);
+    token = urlSession;
+    params.delete('session');
+    history.replaceState(null, '', location.pathname + (params.toString() ? '?' + params.toString() : ''));
+  }
+  const oauthError = params.get('error');
+  if (oauthError) {
+    const map = { no_code: 'Giriş kod alınamadı, tekrar deneyin.', oauth_failed: 'Discord girişi başarısız oldu.' };
+    document.getElementById('loginError').textContent = map[oauthError] || 'Giriş başarısız oldu.';
+  }
+
+  // ─── Yardımcılar ────────────────────────────────────────────────────────────
+  const $ = id => document.getElementById(id);
+
+  function api(path, opts = {}) {
+    const headers = Object.assign({}, opts.headers || {});
+    if (token) headers['Authorization'] = 'Bearer ' + token;
+    if (opts.body) headers['Content-Type'] = 'application/json';
+    return fetch(path, Object.assign({}, opts, { headers })).then(async res => {
+      if (res.status === 401) { logout(); throw new Error('Oturum süresi doldu'); }
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || ('Hata ' + res.status));
+      return data;
+    });
+  }
+
+  function toast(msg, type) {
+    const el = document.createElement('div');
+    el.className = 'toast ' + (type || '');
+    el.textContent = msg;
+    $('toasts').appendChild(el);
+    setTimeout(() => el.remove(), 3500);
+  }
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+
+  function fmtDate(ts) {
+    if (!ts) return '—';
+    return new Date(ts).toLocaleDateString('tr-TR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+  }
+
+  function loadingPane(id) {
+    $(id).innerHTML = '<div class="loading"><span class="spinner"></span>Yükleniyor…</div>';
+  }
+
+  function logout() {
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(GUILD_KEY);
+    token = null;
+    currentGuildId = null;
+    currentData = null;
+    $('appView').classList.add('hidden');
+    $('loginView').classList.remove('hidden');
+    $('userbox').classList.add('hidden');
+    $('guildSelect').value = '';
+  }
+
+  // ─── Giriş butonları ────────────────────────────────────────────────────────
+  $('loginBtn').addEventListener('click', () => {
+    location.href = '/auth/discord/login?redirect=/panel';
+  });
+  $('logoutBtn').addEventListener('click', logout);
+
+  // ─── Başlat ─────────────────────────────────────────────────────────────────
+  async function init() {
+    if (!token) return; // giriş ekranı zaten görünür
+
+    try {
+      const me = await api('/api/me');
+      $('uname').textContent = me.username;
+      $('uavatar').src = me.avatar || '';
+      $('userbox').classList.remove('hidden');
+      $('loginView').classList.add('hidden');
+      $('appView').classList.remove('hidden');
+
+      const { guilds } = await api('/api/dashboard/guilds');
+      const select = $('guildSelect');
+      select.innerHTML = '<option value="">Sunucu seçin…</option>' +
+        guilds.map(g => `<option value="${g.id}">${esc(g.name)} (${g.memberCount})${g.isOwner ? ' 👑' : ''}</option>`).join('');
+      if (guilds.length === 0) {
+        select.innerHTML = '<option value="">Botun kurulu olduğu ve yönettiğin sunucu yok</option>';
+        select.disabled = true;
+      }
+      bindTabs();
+      await autoLoadLastGuild();
+    } catch (err) {
+      toast(err.message, 'err');
+    }
+  }
+
+  function bindTabs() {
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        ['overview', 'settings', 'economy', 'threats'].forEach(p => $('pane-' + p).classList.toggle('hidden', p !== tab.dataset.tab));
+        if (tab.dataset.tab === 'overview') loadOverview();
+        if (tab.dataset.tab === 'settings') renderSettings();
+        if (tab.dataset.tab === 'economy') loadEconomy();
+        if (tab.dataset.tab === 'threats') loadThreats();
+      });
+    });
+    $('refreshBtn').addEventListener('click', refreshCurrent);
+    $('guildSelect').addEventListener('change', async e => {
+      currentGuildId = e.target.value;
+      localStorage.setItem(GUILD_KEY, currentGuildId || '');
+      currentData = null;
+      if (!currentGuildId) return;
+      // Ayarlar sekmesi seçiliyse eski formu temizle, genel bakışa dön
+      document.querySelector('.tab[data-tab="overview"]').click();
+      await loadOverview();
+    });
+  }
+
+  // ─── Sayfa yüklendiğinde son seçili sunucuyu otomatik yükle ─────────────────
+  async function autoLoadLastGuild() {
+    if (!token) return;
+    if (!currentGuildId) return;
+    // Dropdown'da seçili yap
+    const select = $('guildSelect');
+    if (select) {
+      select.value = currentGuildId;
+      // Önce guild listesi yüklenene kadar bekle
+      setTimeout(async () => {
+        if (select.value === currentGuildId) {
+          document.querySelector('.tab[data-tab="overview"]').click();
+          await loadOverview();
+        }
+      }, 100);
+    }
+  }
+
+  async function refreshCurrent() {
+    if (!currentGuildId) return toast('Önce bir sunucu seç.', 'err');
+    const active = document.querySelector('.tab.active').dataset.tab;
+    if (active === 'overview') await loadOverview();
+    if (active === 'settings') renderSettings();
+    if (active === 'economy') await loadEconomy();
+    if (active === 'threats') await loadThreats();
+    toast('Güncellendi.', 'ok');
+  }
+
+  // ─── GENEL BAKIŞ ────────────────────────────────────────────────────────────
+  async function loadOverview() {
+    if (!currentGuildId) { $('pane-overview').innerHTML = '<div class="empty">Ayarları görüntülemek için bir sunucu seç.</div>'; return; }
+    loadingPane('pane-overview');
+    try {
+      const data = await api('/api/dashboard/' + currentGuildId);
+      currentData = data;
+      renderOverview(data);
+    } catch (err) {
+      $('pane-overview').innerHTML = '<div class="empty">⚠️ ' + esc(err.message) + '</div>';
+    }
+  }
+
+  function renderOverview(data) {
+    const live = data.live || {};
+    const g = data.config || {};
+    const blocked = data.blockedThreats || 0;
+
+    const cards = [
+      { label: 'Üye', value: (live.memberCount || 0).toLocaleString('tr-TR'), sub: 'Toplam üye', icon: '👥' },
+      { label: 'Çevrimiçi', value: (live.onlineCount || 0).toLocaleString('tr-TR'), sub: 'Şu an aktif', icon: '🟢' },
+      { label: 'Boost', value: (live.boostCount || 0).toLocaleString('tr-TR'), sub: 'Seviye ' + (live.boostLevel || 0), icon: '🚀' },
+      { label: 'Engellenen Tehdit', value: blocked.toLocaleString('tr-TR'), sub: 'Global tehdit ağı', icon: '🛡️' },
+    ];
+
+    const cardsHtml = '<div class="grid">' + cards.map(c =>
+      `<div class="card stat-card"><div class="label">${c.icon} ${c.label}</div><div class="value">${c.value}</div><div class="sub">${c.sub}</div></div>`
+    ).join('') + '</div>';
+
+    // Mesaj trafiği (son 24 saat)
+    const hours = data.msgByHour || [];
+    const maxMsg = Math.max(1, ...hours.map(h => h.count || 0));
+    const chartHtml = '<div class="card"><h3>💬 Mesaj Trafiği (son 24 saat)</h3>' +
+      '<div class="chart">' + hours.map(h => {
+        const pct = Math.max(3, Math.round(((h.count || 0) / maxMsg) * 100));
+        return `<div class="bar" style="height:${pct}%" title="${h.hour}: ${h.count}"><span class="tl">${h.count || ''}</span></div>`;
+      }).join('') + '</div>' +
+      '<div class="xlabels">' + hours.filter((_, i) => i % 4 === 0).map(h => `<span>${h.hour}</span>`).join('') + '</div>' +
+      '</div>';
+
+    // Üye katılımları (son 7 gün)
+    const joins = data.joinStats || [];
+    const maxJoin = Math.max(1, ...joins.map(j => j.count || 0));
+    const joinChart = '<div class="card"><h3>📥 Üye Katılımları</h3>' +
+      '<div class="chart">' + joins.map(j => {
+        const pct = Math.max(3, Math.round(((j.count || 0) / maxJoin) * 100));
+        return `<div class="bar" style="height:${pct}%" title="${j.date}: ${j.count}"><span class="tl">${j.count || ''}</span></div>`;
+      }).join('') + '</div>' +
+      '<div class="xlabels">' + joins.map(j => `<span>${j.date.slice(5)}</span>`).join('') + '</div>' +
+      '</div>';
+
+    // En aktif kanallar
+    const chans = data.topChannels || [];
+    const maxChan = Math.max(1, ...chans.map(c => c.count || 0));
+    const chanHtml = '<div class="card"><h3>🔥 En Aktif Kanallar</h3>' +
+      (chans.length ? chans.map(c =>
+        `<div class="hbar-row"><div class="name">${esc(c.channelName || c.channelId)}</div>` +
+        `<div class="hbar-track"><div class="hbar-fill" style="width:${Math.round((c.count / maxChan) * 100)}%"></div></div>` +
+        `<div class="num">${c.count}</div></div>`
+      ).join('') : '<div class="empty">Henüz veri yok</div>') +
+      '</div>';
+
+    $('pane-overview').innerHTML = cardsHtml + '<div style="height:16px"></div><div class="grid">' + chartHtml + joinChart + '</div><div style="height:16px"></div>' + chanHtml;
+  }
+
+  // ─── AYARLAR ────────────────────────────────────────────────────────────────
+  function renderSettings() {
+    if (!currentGuildId) { $('pane-settings').innerHTML = '<div class="empty">Ayarları görüntülemek için bir sunucu seç.</div>'; return; }
+    loadingPane('pane-settings');
+    if (!currentData) {
+      api('/api/dashboard/' + currentGuildId).then(d => { currentData = d; renderSettingsForm(d); })
+        .catch(err => { $('pane-settings').innerHTML = '<div class="empty">⚠️ ' + esc(err.message) + '</div>'; });
+    } else {
+      renderSettingsForm(currentData);
+    }
+  }
+
+  function toggleRow(id, label, desc, val) {
+    return `<div class="setting-row"><div class="info"><div class="name">${label}</div><div class="desc">${desc}</div></div>
+      <label class="switch"><input type="checkbox" id="${id}" ${val ? 'checked' : ''}><span class="slider"></span></label></div>`;
+  }
+
+  function renderSettingsForm(data) {
+    const c = data.config || {};
+
+    // Kanal/rol özeti
+    const chs = c.channels || {};
+    const channelChips = Object.entries(chs).filter(([, v]) => v && v.name)
+      .map(([k, v]) => `<span class="chip">${esc(k)} → #${esc(v.name)}</span>`).join('');
+    const roleChips = [
+      c.modRole ? `<span class="chip">Yetkili rol → @${esc(c.modRole.name)}</span>` : '',
+      c.autoRole ? `<span class="chip">Otomatik rol → @${esc(c.autoRole.name)}</span>` : '',
+    ].filter(Boolean).join('');
+
+    const settingsHtml =
+      '<div class="card settings-section"><h3>🛡️ Güvenlik</h3>' +
+      toggleRow('t-autoMod', 'AutoMod', 'Küfür/ırkçılık/zorbalık filtresi', c.autoMod) +
+      toggleRow('t-antiRaid', 'Anti-Raid', 'Kanal/rol silme, toplu ban ve spam koruması', c.antiRaid) +
+      toggleRow('t-antiInvite', 'Anti-Invite', 'Rastgele davet linklerini sil', c.antiInvite) +
+      toggleRow('t-aiModeration', 'AI Moderasyon', 'Gemini ile ton analizi (sarkazm/tehdit ayrımı)', c.aiModeration) +
+      toggleRow('t-linkSandbox', 'Link Kum Havuzu', 'Zararlı link kontrolü (redirect + phishing)', c.linkSandbox) +
+      toggleRow('t-trustScore', 'Güven Skoru', 'Yeni üye hesap güven analizi', c.trustScoreEnabled) +
+      '</div>';
+
+    const welcomeHtml =
+      '<div class="card settings-section"><h3>👋 Karşılama</h3>' +
+      toggleRow('t-welcome', 'Karşılama Mesajı', 'Yeni üyelere özel hoş geldin mesajı', c.welcomeEnabled) +
+      '<label class="field">Mesaj ({kullanici}, {sunucu}, {uye-sayisi} destekler)</label>' +
+      `<textarea id="in-welcomeMsg" rows="2" maxlength="1000">${esc(c.welcomeMessage || '')}</textarea>` +
+      (roleChips ? '<div class="chips">' + roleChips + '</div>' : '') +
+      '</div>';
+
+    const bannedHtml =
+      '<div class="card settings-section"><h3>🚫 Yasaklı Kelimeler (' + (c.bannedWords || []).length + ')</h3>' +
+      '<label class="field">Her satıra bir kelime/ifade</label>' +
+      `<textarea id="in-banned" rows="6" spellcheck="false">${esc((c.bannedWords || []).join('\n'))}</textarea>` +
+      '</div>';
+
+    const raid = c.antiRaidConfig || {};
+    const cats = [
+      ['channelDelete', '📁 Kanal Silme'], ['channelCreate', '📁 Kanal Oluşturma'],
+      ['roleDelete', '🎭 Rol Silme'], ['massBan', '🔨 Toplu Ban'], ['messageSpam', '💬 Mesaj Spamı'],
+    ];
+    const raidHtml = '<div class="card settings-section"><h3>🚨 Anti-Raid Eşikleri</h3>' +
+      '<div class="raid-grid">' + cats.map(([key, label]) => {
+        const r = raid[key] || {};
+        const fields = [
+          r.threshold != null ? `<label>Eşik (adet)<input type="number" min="1" max="100" data-cat="${key}" data-field="threshold" value="${r.threshold}"></label>` : '',
+          r.windowSec != null ? `<label>Pencere (sn)<input type="number" min="1" max="600" data-cat="${key}" data-field="windowSec" value="${r.windowSec}"></label>` : '',
+          r.timeoutSec != null ? `<label>Timeout (sn)<input type="number" min="1" max="3600" data-cat="${key}" data-field="timeoutSec" value="${r.timeoutSec}"></label>` : '',
+        ].join('');
+        return `<div class="raid-box"><div class="cat">${label}</div>${fields || '<div class="muted">—</div>'}</div>`;
+      }).join('') + '</div></div>';
+
+    const logHtml = '<div class="card settings-section"><h3>📋 Log Kanalları</h3>' +
+      (channelChips ? '<div class="chips">' + channelChips + '</div>' : '<div class="empty">Log kanalı kurulmamış — /setup kullanın.</div>') +
+      '</div>';
+
+    $('pane-settings').innerHTML =
+      settingsHtml + welcomeHtml + bannedHtml + raidHtml + logHtml +
+      '<button class="btn primary" id="saveBtn" style="margin-top:6px;padding:12px 26px;">💾 Ayarları Kaydet</button>';
+
+    $('saveBtn').addEventListener('click', saveSettings);
+  }
+
+  async function saveSettings() {
+    const c = (currentData && currentData.config) || {};
+    const getBool = id => $(id) ? $(id).checked : undefined;
+
+    const payload = {
+      autoMod: getBool('t-autoMod'),
+      antiRaid: getBool('t-antiRaid'),
+      antiInvite: getBool('t-antiInvite'),
+      aiModeration: getBool('t-aiModeration'),
+      linkSandbox: getBool('t-linkSandbox'),
+      trustScoreEnabled: getBool('t-trustScore'),
+      welcomeEnabled: getBool('t-welcome'),
+      welcomeMessage: $('in-welcomeMsg') ? $('in-welcomeMsg').value : undefined,
+      bannedWords: $('in-banned') ? $('in-banned').value.split('\n').map(s => s.trim()).filter(Boolean) : undefined,
+      antiRaidConfig: {},
+    };
+
+    document.querySelectorAll('#pane-settings input[data-cat]').forEach(inp => {
+      const cat = inp.dataset.cat, field = inp.dataset.field;
+      const val = parseInt(inp.value, 10);
+      if (Number.isFinite(val) && val >= 1) {
+        payload.antiRaidConfig[cat] = payload.antiRaidConfig[cat] || {};
+        payload.antiRaidConfig[cat][field] = val;
+      }
+    });
+    if (Object.keys(payload.antiRaidConfig).length === 0) delete payload.antiRaidConfig;
+
+    // undefined alanları gönderme
+    Object.keys(payload).forEach(k => { if (payload[k] === undefined) delete payload[k]; });
+
+    try {
+      const res = await api('/api/dashboard/' + currentGuildId + '/settings', { method: 'POST', body: JSON.stringify(payload) });
+      // Güncel config'i tazele
+      currentData = await api('/api/dashboard/' + currentGuildId);
+      toast('✅ Ayarlar kaydedildi: ' + Object.keys(res.updated || {}).length + ' alan güncellendi.', 'ok');
+    } catch (err) {
+      toast('❌ ' + err.message, 'err');
+    }
+  }
+
+  // ─── EKONOMİ ─────────────────────────────────────────────────────────────────
+  async function loadEconomy() {
+    loadingPane('pane-economy');
+    try {
+      const data = await api('/api/dashboard/' + currentGuildId + '/economy/leaderboard');
+      renderEconomy(data);
+    } catch (err) {
+      $('pane-economy').innerHTML =
+        '<div class="denied"><div class="big">🔒</div><h3>Ekonomi verisi yüklenemedi</h3>' +
+        '<p class="muted" style="margin-top:8px;">' + esc(err.message) + '</p></div>';
+    }
+  }
+
+  function renderEconomy(data) {
+    const leaderboard = data.leaderboard || [];
+    const total = data.total || 0;
+
+    if (leaderboard.length === 0) {
+      $('pane-economy').innerHTML = '<div class="empty">Bu sunucuda henüz ekonomi verisi yok.</div>';
+      return;
+    }
+
+    const isOwner = currentData?.config?.ownerId === (await api('/api/me').catch(() => ({}))).discordId;
+    const canEdit = isOwner || currentData?.config?.adminRoleId;
+
+    let tableHtml = '<div class="card settings-section"><h3>💰 Ekonomi Liderlik Tablosu (' + total + ' üye)</h3>' +
+      '<div style="overflow-x:auto"><table class="table"><thead><tr>' +
+      '<th>Sıra</th><th>Kullanıcı</th><th>Bakiye</th><th>Son Günlük</th><th>Son Çalışma</th>';
+    if (canEdit) tableHtml += '<th>İşlem</th>';
+    tableHtml += '</tr></thead><tbody>';
+
+    leaderboard.forEach((entry, i) => {
+      const dailyStr = entry.lastDaily ? '<t:' + Math.floor(entry.lastDaily / 1000) + ':R>' : '—';
+      const workStr = entry.lastWork ? '<t:' + Math.floor(entry.lastWork / 1000) + ':R>' : '—';
+      tableHtml += '<tr>' +
+        '<td><strong>#' + (i + 1) + '</strong></td>' +
+        '<td><@' + entry.userId + '></td>' +
+        '<td><strong>' + (entry.balance || 0).toLocaleString('tr-TR') + '</strong> 💰</td>' +
+        '<td class="muted">' + dailyStr + '</td>' +
+        '<td class="muted">' + workStr + '</td>';
+      if (canEdit) {
+        tableHtml += '<td><button class="btn small" onclick="editBalance(\'' + entry.userId + '\', ' + (entry.balance || 0) + ')">✏️ Düzenle</button></td>';
+      }
+      tableHtml += '</tr>';
+    });
+    tableHtml += '</tbody></table></div></div>';
+
+    $('pane-economy').innerHTML = tableHtml;
+  }
+
+  // Make editBalance globally accessible
+  window.editBalance = async function(userId, currentBalance) {
+    const newBalance = prompt('Yeni bakiye (' + currentBalance + '):', currentBalance);
+    if (newBalance === null) return;
+    const parsed = parseInt(newBalance);
+    if (isNaN(parsed) || parsed < 0) return toast('Geçersiz miktar.', 'err');
+
+    try {
+      await api('/api/dashboard/' + currentGuildId + '/economy/' + userId, {
+        method: 'POST',
+        body: JSON.stringify({ balance: parsed })
+      });
+      toast('✅ Bakiye güncellendi: ' + parsed.toLocaleString('tr-TR'), 'ok');
+      await loadEconomy();
+    } catch (err) {
+      toast('❌ ' + err.message, 'err');
+    }
+  };
+
+  // ─── TEHDİT AĞI ─────────────────────────────────────────────────────────────
+  async function loadThreats() {
+    loadingPane('pane-threats');
+    try {
+      const data = await api('/api/threat-network');
+      renderThreats(data);
+    } catch (err) {
+      $('pane-threats').innerHTML =
+        '<div class="denied"><div class="big">🔒</div><h3>Tehdit ağına erişim yalnızca bot sahibine açık</h3>' +
+        '<p class="muted" style="margin-top:8px;">' + esc(err.message) + '</p></div>';
+    }
+  }
+
+  function renderThreats(data) {
+    const threats = data.threats || [];
+
+    // Şiddet dağılımı
+    const counts = { yuksek: 0, orta: 0, dusuk: 0 };
+    threats.forEach(t => { counts[t.severity === 'yüksek' ? 'yuksek' : t.severity === 'orta' ? 'orta' : 'dusuk']++; });
+    const max = Math.max(1, threats.length);
+    const sevHtml = '<div class="card settings-section"><h3>🌐 Global Tehdit Ağı (' + data.total + ' kayıt)</h3>' +
+      '<div class="sev-row"><div class="name">🔴 Yüksek</div><div class="track"><div class="hbar-fill" style="width:' + Math.round((counts.yuksek / max) * 100) + '%;background:#ff5555"></div></div><div class="num">' + counts.yuksek + '</div></div>' +
+      '<div class="sev-row"><div class="name">🟠 Orta</div><div class="track"><div class="hbar-fill" style="width:' + Math.round((counts.orta / max) * 100) + '%;background:#ffaa00"></div></div><div class="num">' + counts.orta + '</div></div>' +
+      '<div class="sev-row"><div class="name">🟡 Düşük</div><div class="track"><div class="hbar-fill" style="width:' + Math.round((counts.dusuk / max) * 100) + '%;background:#ffd166"></div></div><div class="num">' + counts.dusuk + '</div></div>' +
+      '</div>';
+
+    const tableHtml = '<div class="card settings-section"><h3>📋 Kayıtlar</h3>' +
+      (threats.length ? '<div style="overflow-x:auto"><table class="table"><thead><tr>' +
+        '<th>Kullanıcı</th><th>Risk</th><th>Sebep</th><th>İlk Tespit</th><th>Rapor</th><th>Tarih</th><th></th>' +
+        '</tr></thead><tbody>' + threats.map(t => {
+          const sev = t.severity === 'yüksek' ? 'yuksek' : t.severity === 'orta' ? 'orta' : 'dusuk';
+          const sevLabel = t.severity === 'yüksek' ? 'Yüksek' : t.severity === 'orta' ? 'Orta' : 'Düşük';
+          return '<tr>' +
+            '<td><code>' + esc(t.userId) + '</code></td>' +
+            '<td><span class="badge ' + sev + '">' + sevLabel + '</span></td>' +
+            '<td>' + esc(t.reason || '—') + '</td>' +
+            '<td>' + esc(t.reportedByName || t.reportedBy || '—') + '</td>' +
+            '<td>' + (t.flagCount || 1) + '</td>' +
+            '<td>' + fmtDate(t.reportedAt) + '</td>' +
+            '<td><button class="btn danger small" data-remove="' + esc(t.userId) + '">Kaldır</button></td>' +
+            '</tr>';
+        }).join('') + '</tbody></table></div>'
+        : '<div class="empty">🌐 Tehdit ağı temiz — hiç kayıt yok.</div>') + '</div>';
+
+    $('pane-threats').innerHTML = sevHtml + tableHtml;
+
+    document.querySelectorAll('#pane-threats [data-remove]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const uid = btn.dataset.remove;
+        if (!confirm('Bu kullanıcıyı tehdit ağından kaldırmak istediğine emin misin?')) return;
+        try {
+          await api('/api/threat-network/' + encodeURIComponent(uid) + '/remove', { method: 'POST' });
+          toast('✅ Tehdit kaydı kaldırıldı.', 'ok');
+          loadThreats();
+        } catch (err) {
+          toast('❌ ' + err.message, 'err');
+        }
+      });
+    });
+  }
+
+  // ─── Başlat ─────────────────────────────────────────────────────────────────
+  init();
+})();
+</script>
+</body>
+</html>

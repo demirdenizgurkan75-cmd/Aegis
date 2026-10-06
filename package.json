@@ -1,0 +1,48 @@
+{
+  "name": "aegis-bot",
+  "version": "1.0.0",
+  "description": "Aegis — tek komutla kurulan bir Discord moderasyon, güvenlik ve topluluk botu / One-command Discord moderation, security and community bot",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "register": "node check-commands.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "@discordjs/opus": "^0.10.0",
+    "@discordjs/voice": "^0.19.2",
+    "@google/genai": "^2.18.0",
+    "@google/generative-ai": "^0.24.1",
+    "@napi-rs/canvas": "^0.1.52",
+    "axios": "^1.18.1",
+    "canvas": "^3.2.3",
+    "connect-sqlite3": "^0.9.17",
+    "cors": "^2.8.6",
+    "d3-force": "^3.0.0",
+    "discord.js": "^14.27.0",
+    "dotenv": "^16.6.1",
+    "express": "^5.2.1",
+    "express-session": "^1.19.0",
+    "gif-encoder-2": "^1.0.5",
+    "js-yaml": "^5.3.0",
+    "libsodium-wrappers": "^0.8.4",
+    "node-fetch": "^2.7.0",
+    "passport": "^0.7.0",
+    "passport-discord": "^0.1.4",
+    "session-file-store": "^1.5.0",
+    "sodium-native": "^5.1.0"
+  },
+  "keywords": [
+    "discord",
+    "bot",
+    "security",
+    "moderation",
+    "games"
+  ],
+  "author": "Aegis Team",
+  "license": "AGPL-3.0-only",
+  "homepage": "https://betterwithaegis.com"
+}

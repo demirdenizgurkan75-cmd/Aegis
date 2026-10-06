@@ -1,0 +1,35 @@
+# Sırlar — asla commit etme
+.env
+
+# Bağımlılıklar
+node_modules/
+
+# Veritabanı + yedekler
+database.json
+data/backups/
+
+# Loglar
+*.log
+pm2*.log
+logs/
+
+# İşletim sistemi / editör
+.DS_Store
+*.swp
+Ekran görüntüsü*.png
+
+# PM2
+.pm2/
+
+# Oturum, çalışma zamanı verisi ve yerel dosyalar
+sessions/
+data/
+.env.*
+!.env.example
+*.tmp
+index.js.bak
+
+# Açık kaynak sürüm ekleri
+card-samples/
+*.bak
+.env.example.local
